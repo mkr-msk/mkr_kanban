@@ -6,5 +6,6 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Игнорировать лишние поля из .env
 
 settings = Settings()
