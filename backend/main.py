@@ -3,9 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.core.database import engine, SessionLocal, Base
 from app.core.init_data import init_default_data
-
-# Import models to register them with Base
 from app.models import User, Project, Card
+from app.routers import cards  # Добавили импорт
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,6 +35,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Подключаем роутер карточек
+app.include_router(cards.router)
 
 @app.get("/health")
 def health_check():
