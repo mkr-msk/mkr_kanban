@@ -6,9 +6,9 @@ from app.core.init_data import DEFAULT_USER_ID, DEFAULT_PROJECT_ID
 from app.models.card import Card
 from app.schemas.card import CardCreate, CardUpdate, CardResponse
 
-router = APIRouter(prefix="/cards", tags=["cards"])
+router = APIRouter(prefix="/cards", tags=["cards"], redirect_slashes=False)  # Добавили redirect_slashes=False
 
-@router.get("/", response_model=List[CardResponse])
+@router.get("", response_model=List[CardResponse])  # Убрали "/" оставили ""
 def get_cards(db: Session = Depends(get_db)):
     """Получить все карточки дефолтного проекта"""
     cards = db.query(Card).filter(
@@ -16,7 +16,7 @@ def get_cards(db: Session = Depends(get_db)):
     ).order_by(Card.status, Card.position).all()
     return cards
 
-@router.post("/", response_model=CardResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=CardResponse, status_code=status.HTTP_201_CREATED)  # Убрали "/"
 def create_card(card: CardCreate, db: Session = Depends(get_db)):
     """Создать новую карточку"""
     # Проверка на существование карточки с таким title
