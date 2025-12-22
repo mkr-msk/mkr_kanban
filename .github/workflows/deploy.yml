@@ -34,23 +34,26 @@ jobs:
             
             # Clone repo if not exists, otherwise pull
             if [ ! -d ".git" ]; then
-              git clone https://github.com/${{ github.repository }} .
+              git init
+              git remote add origin https://github.com/${{ github.repository }}
+              git fetch
+              git checkout -t origin/main
             else
               git pull origin main
             fi
             
-            # Stop containers
-            docker compose down
+            # Stop containers (using docker-compose with dash)
+            docker-compose down || true
             
             # Build and start containers
-            docker compose build
-            docker compose up -d
+            docker-compose build
+            docker-compose up -d
             
             # Wait for services to start
             sleep 10
             
             # Check if containers are running
-            docker compose ps
+            docker-compose ps
           EOF
 
       - name: Health check
