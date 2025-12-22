@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from uuid import UUID  # Добавили импорт UUID
 
 class CardBase(BaseModel):
     title: str = Field(..., max_length=500)
@@ -19,8 +20,8 @@ class CardUpdate(BaseModel):
     position: Optional[int] = Field(None, ge=0)
 
 class CardResponse(CardBase):
-    project_id: str
-    user_id: str
+    project_id: UUID  # Изменили str на UUID
+    user_id: UUID     # Изменили str на UUID
     created_at: datetime
     updated_at: datetime
 
