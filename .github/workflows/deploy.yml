@@ -1,0 +1,64 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        env:
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PATH: ${{ secrets.SERVER_PATH }}
+        run: |
+          ssh $SERVER_USER@$SERVER_HOST << 'EOF'
+            cd ${{ secrets.SERVER_PATH }}
+            
+            # Clone repo if not exists, otherwise pull
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/${{ github.repository }} .
+            else
+              git pull origin main
+            fi
+            
+            # Stop containers
+            docker compose down
+            
+            # Build and start containers
+            docker compose build
+            docker compose up -d
+            
+            # Wait for services to start
+            sleep 10
+            
+            # Check if containers are running
+            docker compose ps
+          EOF
+
+      - name: Health check
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        run: |
+          echo "Checking backend health..."
+          curl -f https://$SERVER_HOST/api/health || echo "Backend not ready yet"
+          
+          echo "Checking frontend..."
+          curl -f https://$SERVER_HOST/ || echo "Frontend not ready yet"
