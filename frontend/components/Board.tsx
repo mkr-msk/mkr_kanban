@@ -45,10 +45,21 @@ export default function Board() {
     if (!over) return;
 
     const cardTitle = active.id as string;
+    const card = cards.find((c) => c.title === cardTitle);
+    if (!card) return;
+
+    // Проверяем, является ли over.id статусом колонки
+    const validStatuses: CardStatus[] = ['todo', 'in_progress', 'done'];
+    if (!validStatuses.includes(over.id as CardStatus)) {
+      // Если перетащили на другую карточку (изменение порядка внутри колонки)
+      // Пока не поддерживаем, просто игнорируем
+      return;
+    }
+
     const newStatus = over.id as CardStatus;
 
-    const card = cards.find((c) => c.title === cardTitle);
-    if (!card || card.status === newStatus) return;
+    // Если статус не изменился, ничего не делаем
+    if (card.status === newStatus) return;
 
     try {
       await moveCard(cardTitle, newStatus);
